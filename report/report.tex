@@ -264,6 +264,78 @@ that creates the NTC behaviour.
   \label{fig:lowT}
 \end{figure}
 
+\subsection{Reaction-rate sensitivity analysis}
+To identify the reactions that control the NTC behaviour, a brute-force
+sensitivity analysis was performed at a representative point inside the NTC
+window (825 K, 20 bar, $\phi=1.0$). Each rate coefficient $k_i$ of the DME
+sub-mechanism and of the principal small-molecule branching reactions was
+multiplied by a factor of two and the normalised sensitivity
+$S_i = \partial \ln \tau / \partial \ln k_i$ of the total ignition delay $\tau$
+was evaluated. The twelve most influential reactions are shown in
+Figure~\ref{fig:sens}; a negative $S_i$ means the reaction promotes ignition
+(shortens $\tau$), a positive $S_i$ that it inhibits it.
+
+The result is exactly the textbook picture of low-temperature chain branching.
+Ignition is promoted most strongly by the second oxygen addition
+CH\textsubscript{2}OCH\textsubscript{2}O\textsubscript{2}H + O\textsubscript{2}
+$\rightarrow$ O\textsubscript{2}CH\textsubscript{2}OCH\textsubscript{2}O\textsubscript{2}H
+($S=-0.76$), by the fuel-consumption step
+CH\textsubscript{3}OCH\textsubscript{3} + OH ($S=-0.53$), by the
+hydrogen-peroxide branching H\textsubscript{2}O\textsubscript{2}(+M)
+$\rightarrow$ 2\,OH ($S=-0.40$) and by the first O\textsubscript{2} addition and
+its isomerisation
+(CH\textsubscript{3}OCH\textsubscript{2}+O\textsubscript{2}
+$\rightarrow$ CH\textsubscript{3}OCH\textsubscript{2}O\textsubscript{2}
+$\rightarrow$ CH\textsubscript{2}OCH\textsubscript{2}O\textsubscript{2}H). It is
+inhibited by the chain-terminating decompositions that compete with these
+branching steps: the QOOH decomposition
+CH\textsubscript{2}OCH\textsubscript{2}O\textsubscript{2}H $\rightarrow$
+2\,CH\textsubscript{2}O + OH ($S=+0.71$), the fuel-radical $\beta$-scission
+CH\textsubscript{3}OCH\textsubscript{2} $\rightarrow$ CH\textsubscript{2}O +
+CH\textsubscript{3} ($S=+0.43$) and the concerted elimination
+CH\textsubscript{3}OCH\textsubscript{2}O\textsubscript{2} $\rightarrow$
+2\,CH\textsubscript{2}O + OH ($S=+0.33$). The NTC behaviour is the direct
+outcome of this competition: as the temperature rises, the chain-terminating
+$\beta$-scission and the reverse RO\textsubscript{2} $\rightarrow$
+R + O\textsubscript{2} step outpace the chain-branching O\textsubscript{2}-addition
+route, so the ignition delay lengthens.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.86\textwidth]{fig6_sensitivity.png}
+  \caption{Brute-force sensitivity of the total ignition delay to individual
+  reaction rates (825 K, 20 bar, $\phi=1.0$; twelve most influential reactions).
+  Blue (negative $S$): promotes ignition; red (positive $S$): inhibits ignition.}
+  \label{fig:sens}
+\end{figure}
+
+\section{Validation against literature}
+Although the NUI Galway / AramcoMech mechanism used here has itself been validated
+extensively against shock-tube and rapid-compression-machine
+data~\cite{burke2015,metcalfe2013}, two independent checks confirm that the
+present 0-D model reproduces the established DME behaviour
+(Figure~\ref{fig:valid}). First, the apparent activation energy obtained from an
+Arrhenius fit of the high-temperature branch ($T \geq 1050$ K) is
+$E_a = 119$ kJ/mol, well within the 117--130 kJ/mol range reported from
+shock-tube measurements~\cite{cook2009,pfahl1996}. Second, the computed NTC
+window (valley near 800 K, turnover near 950--975 K, shifting to higher
+temperature with pressure) coincides with the 800--1050 K NTC region measured by
+Pfahl et al.~\cite{pfahl1996} for stoichiometric DME/air at 13 and 40 bar. The
+slightly lower turnover temperature obtained here is consistent with the use of a
+constant-pressure (rather than reflected-shock, constant-volume) reactor and of
+the maximum-gradient ignition criterion. The absolute delays --- sub-millisecond
+at 20--40 bar and 1000--1200 K --- are also of the magnitude measured in those
+experiments.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.74\textwidth]{fig7_validation.png}
+  \caption{Validation. The computed high-temperature branch yields an apparent
+  activation energy of 119 kJ/mol (literature 117--130 kJ/mol), and the predicted
+  NTC region overlaps the 800--1050 K window measured by Pfahl et al.\ (1996).}
+  \label{fig:valid}
+\end{figure}
+
 \section{Conclusions}
 A detailed chemical-kinetics study of DME/air autoignition was carried out in
 \textsc{Cantera} using a zero-dimensional adiabatic constant-pressure reactor and
@@ -282,6 +354,13 @@ the NUI Galway 2015 mechanism. The main findings are:
   behaviour arises from the lengthening induction period between the two stages
   as the RO\textsubscript{2} branching pathway is progressively shut off with
   rising temperature.
+  \item A brute-force sensitivity analysis identifies the controlling chemistry:
+  the second O\textsubscript{2} addition and H\textsubscript{2}O\textsubscript{2}
+  branching promote ignition, while the QOOH decomposition and the
+  CH\textsubscript{3}OCH\textsubscript{2} $\beta$-scission inhibit it; their
+  competition is the origin of the NTC. The model is consistent with the
+  literature: an apparent high-temperature activation energy of 119 kJ/mol and an
+  NTC window matching Pfahl et al.\ (1996).
 \end{enumerate}
 The results are physically consistent and in qualitative agreement with the
 published DME literature~\cite{zhao2008,burke2015}, demonstrating that 0-D
@@ -323,6 +402,12 @@ Kinetics, Thermodynamics, and Transport Processes}, version 3.2, 2024.
 hierarchical and comparative kinetic modeling study of
 C\textsubscript{1}--C\textsubscript{2} hydrocarbon and oxygenated fuels.
 \emph{Int. J. Chem. Kinet.} 45 (2013) 638--675.
+\bibitem{pfahl1996} U.~Pfahl, K.~Fieweger, G.~Adomeit. Self-ignition of
+diesel-relevant hydrocarbon-air mixtures under engine conditions.
+\emph{Proc. Combust. Inst.} 26 (1996) 781--789.
+\bibitem{cook2009} R.~D. Cook, D.~F. Davidson, R.~K. Hanson. Shock tube
+measurements of ignition delay times and OH time-histories in dimethyl ether
+oxidation. \emph{Proc. Combust. Inst.} 32 (2009) 189--196.
 \end{thebibliography}
 
 \end{document}
