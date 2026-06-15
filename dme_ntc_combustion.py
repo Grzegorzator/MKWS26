@@ -133,7 +133,10 @@ def main():
     _plot_history(hist["ntc"])
     _plot_species(hist["ntc"])
     _plot_first_vs_total(sweeps_p[20])
-    print("Figures written: fig1..fig5 (*.png)")
+    base, rows = sensitivity()
+    _plot_sensitivity(base, rows)
+    _plot_validation(sweeps_p)
+    print("Figures written: fig1..fig7 (*.png)")
 
 
 # ----------------------------- plotting -------------------------------------
@@ -216,6 +219,90 @@ def _plot_first_vs_total(d):
     ax.set_title("First-stage vs total ignition delay (DME/air, 20 bar, phi = 1.0)")
     ax.legend(); _add_T_axis(ax)
     fig.savefig("fig5_first_vs_total.png"); plt.close(fig)
+
+
+# ----------------------------- sensitivity ----------------------------------
+DME_SPECIES = ["CH3OCH3", "CH3OCH2", "CH3OCH2O2", "CH3OCH2O2H", "CH2OCH2O2H",
+               "O2CH2OCH2O2H", "HO2CH2OCHO", "CH3OCH2O"]
+KEY_BRANCH = ["H2O2 (+M) <=> 2 OH (+M)", "2 HO2 <=> H2O2 + O2",
+              "CH2O + HO2 <=> H2O2 + HCO"]
+
+
+def _idt_simple(gas, T0, P_bar, phi, tmax=2.0):
+    """Total ignition delay for an already-configured gas (multipliers kept)."""
+    gas.set_equivalence_ratio(phi, FUEL, OXID)
+    gas.TP = T0, P_bar * 1e5
+    reac = ct.IdealGasConstPressureReactor(gas)
+    net = ct.ReactorNet([reac])
+    net.atol, net.rtol = 1e-15, 1e-6
+    t_arr, T_arr, t = [], [], 0.0
+    while t < tmax:
+        t = net.step()
+        t_arr.append(t); T_arr.append(reac.T)
+        if reac.T > T0 + 600 and len(T_arr) > 5:
+            break
+    t_arr, T_arr = np.asarray(t_arr), np.asarray(T_arr)
+    return t_arr[int(np.argmax(np.gradient(T_arr, t_arr)))]
+
+
+def sensitivity(T0=825.0, P_bar=20.0, phi=1.0, factor=2.0, top=12):
+    """Brute-force normalised sensitivity S = dln(tau)/dln(k) of the ignition
+    delay to the DME sub-mechanism reactions, at an NTC point."""
+    gas = ct.Solution(MECH)
+    cand = [i for i, R in enumerate(gas.reactions())
+            if any(k in R.equation for k in DME_SPECIES) or R.equation in KEY_BRANCH]
+    gas.set_multiplier(1.0)
+    base = _idt_simple(gas, T0, P_bar, phi)
+    rows = []
+    for i in cand:
+        gas.set_multiplier(1.0)
+        gas.set_multiplier(factor, i)
+        tau = _idt_simple(gas, T0, P_bar, phi)
+        rows.append((gas.reaction(i).equation, np.log(tau / base) / np.log(factor)))
+    gas.set_multiplier(1.0)
+    rows.sort(key=lambda r: abs(r[1]), reverse=True)
+    return base, rows[:top]
+
+
+def arrhenius_Ea(df, Tmin=1050.0):
+    """Apparent activation energy (kJ/mol) of the high-temperature branch."""
+    hi = df[df.T0 >= Tmin]
+    sl, inter = np.polyfit(1.0 / hi.T0, np.log(hi.idt_total), 1)
+    return sl * 8.314 / 1000.0, sl, inter
+
+
+def _plot_sensitivity(base, rows):
+    eqs = [r[0] for r in rows][::-1]
+    S = [r[1] for r in rows][::-1]
+    colors = ["#2166ac" if s < 0 else "#b2182b" for s in S]
+    fig, ax = plt.subplots(figsize=(8.2, 5.2))
+    ax.barh(range(len(S)), S, color=colors)
+    ax.set_yticks(range(len(S))); ax.set_yticklabels(eqs, fontsize=9)
+    ax.axvline(0, color="k", lw=0.8)
+    ax.set_xlabel(r"Normalized sensitivity  $S = d(\ln \tau)/d(\ln k)$")
+    ax.set_title(r"Ignition-delay sensitivity of DME/air (825 K, 20 bar, $\phi$=1.0)")
+    ax.text(0.97, 0.05, "S < 0: promotes ignition\nS > 0: inhibits ignition",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=9,
+            bbox=dict(boxstyle="round", fc="white", ec="gray", alpha=0.9))
+    fig.savefig("fig6_sensitivity.png"); plt.close(fig)
+
+
+def _plot_validation(sweeps_p):
+    d20, d40 = sweeps_p[20], sweeps_p[40]
+    Ea, sl, inter = arrhenius_Ea(d20)
+    fig, ax = plt.subplots(figsize=(7.4, 5.4))
+    ax.axvspan(1000 / 1050, 1000 / 800, color="orange", alpha=0.12)
+    ax.text(1000 / 920, 8.0, "NTC region\n(Pfahl et al. 1996:\n800-1050 K)",
+            ha="center", va="top", fontsize=9, color="#a05a00")
+    ax.semilogy(d20.invT, d20.idt_total_ms, "s-", color="#d62728", label="This work, 20 bar")
+    ax.semilogy(d40.invT, d40.idt_total_ms, "^-", color="#2ca02c", label="This work, 40 bar")
+    xx = np.linspace(1000 / 1300, 1000 / 1050, 50)
+    ax.semilogy(xx, np.exp(inter + sl * (xx / 1000.0)) * 1e3, "k--", lw=1.5,
+                label=f"High-T Arrhenius fit\n$E_a$ = {Ea:.0f} kJ/mol")
+    ax.set_xlabel("1000 / T  (1/K)"); ax.set_ylabel("Ignition delay time  (ms)")
+    ax.set_title("Validation: NTC window and high-T activation energy vs literature")
+    ax.legend(fontsize=9, loc="upper left"); _add_T_axis(ax)
+    fig.savefig("fig7_validation.png"); plt.close(fig)
 
 
 if __name__ == "__main__":

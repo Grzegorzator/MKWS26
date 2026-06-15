@@ -8,10 +8,10 @@ Course: *Computational Methods in Combustion (MKWS)*, Warsaw University of Techn
 
 ## Repository structure
 ```
-dme_ntc_combustion.py   self-contained script: all simulations + 5 figures
+dme_ntc_combustion.py   self-contained script: all simulations + 7 figures
 report/                 LaTeX source (report.tex) and compiled report.pdf
-figures/                generated figures (fig1..fig5)
-data/                   raw results: sweep_*.csv (IDT vs T), history_*.csv
+figures/                generated figures (fig1..fig7, incl. sensitivity & validation)
+data/                   raw results: sweep_*.csv (IDT vs T), history_*.csv, sensitivity_825K.csv
 ```
 
 ## Model
@@ -25,7 +25,7 @@ data/                   raw results: sweep_*.csv (IDT vs T), history_*.csv
 ## Reproduce
 ```bash
 pip install cantera numpy scipy pandas matplotlib
-python dme_ntc_combustion.py          # writes fig1..fig5
+python dme_ntc_combustion.py          # writes fig1..fig7
 cd report && pdflatex report.tex && pdflatex report.tex   # builds the PDF
 ```
 Runtime ~5–10 min on 2 cores (the detailed mechanism is large).
@@ -37,3 +37,7 @@ Runtime ~5–10 min on 2 cores (the detailed mechanism is large).
 - Richer mixtures ignite faster; phi has little effect on the low-T branch.
 - Two-stage ignition: CH3OCH2O2 peroxy-radical pulse + CH2O build-up (cool flame)
   precede the main ignition.
+- Sensitivity analysis: the 2nd O2 addition and H2O2 branching promote ignition; QOOH
+  decomposition and CH3OCH2 beta-scission inhibit it (origin of NTC).
+- Validation: apparent high-T activation energy 119 kJ/mol (lit. ~117-130) and NTC
+  window matching Pfahl et al. (1996).
